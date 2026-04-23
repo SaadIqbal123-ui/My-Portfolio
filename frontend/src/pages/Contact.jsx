@@ -14,10 +14,10 @@ const Contact = () => {
       .then(data => {
         if (data) {
           setProfile({
-            email: data.EMAIL || 'saadiqbalbse067@gmail.com',
-            location: data.LOCATION || 'Islamabad, Pakistan',
-            status: data.STATUS || 'Available for New Projects',
-            base_image_url: data.BASE_IMAGE_URL || 'https://res.cloudinary.com/durgaqq7v/image/upload/v1775323710/portfolio/studio_fallback.jpg'
+            email: data.EMAIL || data.email || 'saadiqbalbse067@gmail.com',
+            location: data.LOCATION || data.location || 'Islamabad, Pakistan',
+            status: data.STATUS || data.status || 'Available for New Projects',
+            base_image_url: data.BASE_IMAGE_URL || data.base_image_url || 'https://res.cloudinary.com/durgaqq7v/image/upload/v1775323710/portfolio/studio_fallback.jpg'
           });
         }
       })

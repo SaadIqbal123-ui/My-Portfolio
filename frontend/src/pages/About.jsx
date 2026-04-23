@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import API_BASE_URL from '../apiConfig';
 
 const About = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/profile')
+    fetch(`${API_BASE_URL}/api/profile`)
       .then(res => res.json())
       .then(data => {
         setProfile(data);
@@ -17,7 +18,7 @@ const About = () => {
       });
   }, []);
 
-  const displayAvatar = profile?.AVATAR_URL || 'https://res.cloudinary.com/durgaqq7v/image/upload/v1775323710/portfolio/frerfyyg5xuvxed3rb0s.png';
+  const displayAvatar = profile?.AVATAR_URL || profile?.avatar_url || 'https://res.cloudinary.com/durgaqq7v/image/upload/v1775323710/portfolio/frerfyyg5xuvxed3rb0s.png';
 
   return (
     <main className="pt-32 pb-24">
