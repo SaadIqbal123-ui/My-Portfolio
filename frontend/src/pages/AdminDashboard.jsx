@@ -24,7 +24,7 @@ const AdminDashboard = () => {
     bio: ''
   });
   const [savingProfile, setSavingProfile] = useState(false);
-  
+
   // New Project State
   const [projectForm, setProjectForm] = useState({
     title: '',
@@ -60,7 +60,21 @@ const AdminDashboard = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/projects`);
       const data = await res.json();
-      setProjects(Array.isArray(data) ? data : []);
+      
+      // PostgreSQL returns lowercase; we map to UPPERCASE aliases to support your current UI logic
+      const mappedData = (Array.isArray(data) ? data : []).map(p => ({
+        ...p, // keep lowercase for the list view
+        id: p.id, 
+        TITLE: p.title,
+        DESCRIPTION: p.description,
+        CATEGORY: p.category,
+        IMAGE_URL: p.image_url,
+        LIVE_URL: p.live_url,
+        GITHUB_URL: p.github_url,
+        CREATED_AT: p.created_at
+      }));
+      
+      setProjects(mappedData);
     } catch (err) {
       console.error('Error fetching projects:', err);
       setProjects([]);
@@ -97,7 +111,7 @@ const AdminDashboard = () => {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("Not authenticated");
       const idToken = await currentUser.getIdToken();
-      
+
       const res = await fetch(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
         headers: {
@@ -106,14 +120,14 @@ const AdminDashboard = () => {
         },
         body: JSON.stringify({ ...projectForm, tags: '', github_url: '' })
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to save via API");
       }
-      
+
       // Reset form and go back to projects tab
-      setProjectForm({ title: '', category: '', live_url: '', description: '', image_url: ''});
+      setProjectForm({ title: '', category: '', live_url: '', description: '', image_url: '' });
       setActiveTab('projects');
       fetchProjects();
     } catch (err) {
@@ -127,13 +141,13 @@ const AdminDashboard = () => {
   const handleUpdateProject = async (e) => {
     e.preventDefault();
     if (!editingProject || !editingProject.id) return;
-    
+
     setUpdatingProject(true);
     try {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("Not authenticated");
       const idToken = await currentUser.getIdToken();
-      
+
       const res = await fetch(`${API_BASE_URL}/api/projects/${editingProject.id}`, {
         method: 'PUT',
         headers: {
@@ -141,21 +155,21 @@ const AdminDashboard = () => {
           Authorization: `Bearer ${idToken}`
         },
         body: JSON.stringify({
-          title: editingProject.title,
-          description: editingProject.description,
-          category: editingProject.category,
-          live_url: editingProject.live_url,
-          image_url: editingProject.image_url,
+          title: editingProject.TITLE || editingProject.title,
+          description: editingProject.DESCRIPTION || editingProject.description,
+          category: editingProject.CATEGORY || editingProject.category,
+          live_url: editingProject.LIVE_URL || editingProject.live_url,
+          image_url: editingProject.IMAGE_URL || editingProject.image_url,
           tags: editingProject.tags || '',
-          github_url: editingProject.github_url || ''
+          github_url: editingProject.GITHUB_URL || editingProject.github_url || ''
         })
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to update project");
       }
-      
+
       alert('Project updated successfully!');
       setEditingProject(null);
       setActiveTab('projects');
@@ -279,9 +293,8 @@ const AdminDashboard = () => {
         <nav className="flex-grow flex flex-col gap-y-1">
           <button
             onClick={() => setActiveTab('projects')}
-            className={`mx-4 py-3 px-6 flex items-center gap-3 rounded-full transition-all duration-200 ${
-              activeTab === 'projects' ? 'bg-gradient-to-br from-[#c0c1ff] to-[#4b4dd8] text-[#131313]' : 'text-[#e5e2e1]/40 hover:bg-[#353534] hover:text-[#e5e2e1] hover:translate-x-1'
-            }`}
+            className={`mx-4 py-3 px-6 flex items-center gap-3 rounded-full transition-all duration-200 ${activeTab === 'projects' ? 'bg-gradient-to-br from-[#c0c1ff] to-[#4b4dd8] text-[#131313]' : 'text-[#e5e2e1]/40 hover:bg-[#353534] hover:text-[#e5e2e1] hover:translate-x-1'
+              }`}
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: activeTab === 'projects' ? "'FILL' 1" : "'FILL' 0" }}>grid_view</span>
             <span className={`font-label text-sm uppercase tracking-[0.1rem] ${activeTab === 'projects' ? 'font-bold' : ''}`}>Projects</span>
@@ -289,9 +302,8 @@ const AdminDashboard = () => {
 
           <button
             onClick={() => setActiveTab('contacts')}
-            className={`mx-4 py-3 px-6 flex items-center gap-3 rounded-full transition-all duration-200 ${
-              activeTab === 'contacts' ? 'bg-gradient-to-br from-[#c0c1ff] to-[#4b4dd8] text-[#131313]' : 'text-[#e5e2e1]/40 hover:bg-[#353534] hover:text-[#e5e2e1] hover:translate-x-1'
-            }`}
+            className={`mx-4 py-3 px-6 flex items-center gap-3 rounded-full transition-all duration-200 ${activeTab === 'contacts' ? 'bg-gradient-to-br from-[#c0c1ff] to-[#4b4dd8] text-[#131313]' : 'text-[#e5e2e1]/40 hover:bg-[#353534] hover:text-[#e5e2e1] hover:translate-x-1'
+              }`}
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: activeTab === 'contacts' ? "'FILL' 1" : "'FILL' 0" }}>contact_mail</span>
             <span className={`font-label text-sm uppercase tracking-[0.1rem] ${activeTab === 'contacts' ? 'font-bold' : ''}`}>Contacts</span>
@@ -299,9 +311,8 @@ const AdminDashboard = () => {
 
           <button
             onClick={() => setActiveTab('profile')}
-            className={`mx-4 py-3 px-6 flex items-center gap-3 rounded-full transition-all duration-200 ${
-              activeTab === 'profile' ? 'bg-gradient-to-br from-[#c0c1ff] to-[#4b4dd8] text-[#131313]' : 'text-[#e5e2e1]/40 hover:bg-[#353534] hover:text-[#e5e2e1] hover:translate-x-1'
-            }`}
+            className={`mx-4 py-3 px-6 flex items-center gap-3 rounded-full transition-all duration-200 ${activeTab === 'profile' ? 'bg-gradient-to-br from-[#c0c1ff] to-[#4b4dd8] text-[#131313]' : 'text-[#e5e2e1]/40 hover:bg-[#353534] hover:text-[#e5e2e1] hover:translate-x-1'
+              }`}
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: activeTab === 'profile' ? "'FILL' 1" : "'FILL' 0" }}>person_outline</span>
             <span className={`font-label text-sm uppercase tracking-[0.1rem] ${activeTab === 'profile' ? 'font-bold' : ''}`}>Profile</span>
@@ -309,7 +320,7 @@ const AdminDashboard = () => {
         </nav>
 
         <div className="px-4 mt-auto space-y-4">
-          <button 
+          <button
             onClick={() => setActiveTab('new_project')}
             className="w-full bg-gradient-to-r from-[#c0c1ff] to-[#4b4dd8] text-[#1000a9] py-4 rounded-full font-bold text-sm uppercase tracking-widest shadow-lg shadow-[#c0c1ff]/10 hover:opacity-90 transition-opacity">
             New Project
@@ -502,7 +513,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             {/* FAB */}
-            <button 
+            <button
               onClick={() => setActiveTab('new_project')}
               className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-br from-[#c0c1ff] to-[#4b4dd8] rounded-full shadow-[0_20px_40px_-5px_rgba(73,75,214,0.4)] flex items-center justify-center text-[#131313] hover:scale-110 active:scale-90 transition-all z-50"
             >
@@ -526,10 +537,10 @@ const AdminDashboard = () => {
                 <div className="relative group cursor-pointer border-4 border-[#353534] shadow-2xl rounded-full overflow-hidden w-48 h-48 transition-transform duration-500">
                   <div className="w-full h-full bg-[#1c1b1b] relative overflow-hidden">
                     {profile.avatar_url ? (
-                      <img 
-                        src={profile.avatar_url} 
-                        alt="Current Avatar" 
-                        className="w-full h-full object-cover transition-transform duration-700" 
+                      <img
+                        src={profile.avatar_url}
+                        alt="Current Avatar"
+                        className="w-full h-full object-cover transition-transform duration-700"
                       />
                     ) : (
                       <div className="w-full h-full bg-[#131313] flex items-center justify-center">
@@ -541,15 +552,15 @@ const AdminDashboard = () => {
                 <div className="mt-8 w-full">
                   <h3 className="font-headline text-xl mb-2 text-[#e5e2e1]">{profile.full_name || 'Admin User'}</h3>
                   <p className="font-body text-[#c7c4d8] text-sm mb-6">{profile.status || 'Editorial Director'}</p>
-                  
+
                   <div className="relative text-left w-full mt-4">
                     <label className="absolute -top-2.5 left-4 bg-[#1c1b1b] px-2 font-label text-[10px] uppercase tracking-[0.15em] text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">Image URL</label>
-                    <input 
-                      className="w-full bg-[#2a2a2a] border-none rounded-xl py-3 px-4 text-xs text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none" 
-                      type="url" 
+                    <input
+                      className="w-full bg-[#2a2a2a] border-none rounded-xl py-3 px-4 text-xs text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none"
+                      type="url"
                       placeholder="Paste image link here"
                       value={profile.avatar_url}
-                      onChange={(e) => setProfile({...profile, avatar_url: e.target.value})}
+                      onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
                     />
                   </div>
                 </div>
@@ -566,29 +577,29 @@ const AdminDashboard = () => {
                   <div className="space-y-6">
                     <div className="relative">
                       <label className="absolute -top-2.5 left-4 bg-[#1c1b1b] px-2 font-label text-[10px] uppercase tracking-[0.15em] text-[#c7c4d8]">Full Name</label>
-                      <input 
-                        className="w-full bg-[#2a2a2a] border-none rounded-xl py-4 px-6 text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none" 
-                        type="text" 
+                      <input
+                        className="w-full bg-[#2a2a2a] border-none rounded-xl py-4 px-6 text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none"
+                        type="text"
                         value={profile.full_name}
-                        onChange={(e) => setProfile({...profile, full_name: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                       />
                     </div>
                     <div className="relative">
                       <label className="absolute -top-2.5 left-4 bg-[#1c1b1b] px-2 font-label text-[10px] uppercase tracking-[0.15em] text-[#c7c4d8]">Email Address</label>
-                      <input 
-                        className="w-full bg-[#2a2a2a] border-none rounded-xl py-4 px-6 text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none" 
-                        type="email" 
+                      <input
+                        className="w-full bg-[#2a2a2a] border-none rounded-xl py-4 px-6 text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none"
+                        type="email"
                         value={profile.email}
-                        onChange={(e) => setProfile({...profile, email: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                       />
                     </div>
                     <div className="relative">
                       <label className="absolute -top-2.5 left-4 bg-[#1c1b1b] px-2 font-label text-[10px] uppercase tracking-[0.15em] text-[#c7c4d8]">Short Bio</label>
-                      <textarea 
-                        className="w-full bg-[#2a2a2a] border-none rounded-xl py-4 px-6 text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all resize-none outline-none" 
+                      <textarea
+                        className="w-full bg-[#2a2a2a] border-none rounded-xl py-4 px-6 text-[#e5e2e1] focus:ring-2 focus:ring-[#c0c1ff] transition-all resize-none outline-none"
                         rows="3"
                         value={profile.bio}
-                        onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                       ></textarea>
                     </div>
                   </div>
@@ -603,13 +614,13 @@ const AdminDashboard = () => {
                 <span className="text-xs font-label uppercase tracking-widest">Unsaved Changes</span>
               </div>
               <div className="flex items-center gap-4 w-full md:w-auto">
-                <button 
+                <button
                   onClick={() => fetchProfile()} // Resets to DB state
                   className="flex-1 md:flex-none px-10 py-4 rounded-full border border-[#464555]/30 text-[#c7c4d8] text-xs font-bold uppercase tracking-widest hover:bg-[#2a2a2a] transition-colors"
                 >
                   Discard
                 </button>
-                <button 
+                <button
                   onClick={handleUpdateProfile}
                   disabled={savingProfile}
                   className="flex-1 md:flex-none px-12 py-4 rounded-full bg-gradient-to-r from-[#c0c1ff] to-[#4b4dd8] text-[#1000a9] text-xs font-bold uppercase tracking-[0.2em] shadow-2xl shadow-[#c0c1ff]/20 hover:scale-[1.02] active:scale-95 transition-all outline-none disabled:opacity-50"
@@ -639,7 +650,7 @@ const AdminDashboard = () => {
                 Manage the portal's public-facing metadata and orchestrate response workflows for incoming editorial inquiries.
               </p>
             </div>
-            
+
             {/* Optimized Grid Layout */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
               {/* Public Profile Section */}
@@ -655,30 +666,30 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="relative group md:col-span-2">
                       <label className="absolute -top-2 left-4 px-2 bg-[#1c1b1b] text-xs font-label uppercase tracking-widest text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">Public Email</label>
-                      <input 
-                        className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body" 
-                        type="text" 
-                        value={profile.email} 
-                        onChange={(e) => setProfile({...profile, email: e.target.value})}
+                      <input
+                        className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body"
+                        type="text"
+                        value={profile.email}
+                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                         placeholder="editorial@example.com"
                       />
                     </div>
                     <div className="relative group md:col-span-2">
                       <label className="absolute -top-2 left-4 px-2 bg-[#1c1b1b] text-xs font-label uppercase tracking-widest text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">Studio Location</label>
-                      <input 
-                        className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body" 
-                        type="text" 
-                        value={profile.location} 
-                        onChange={(e) => setProfile({...profile, location: e.target.value})}
+                      <input
+                        className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body"
+                        type="text"
+                        value={profile.location}
+                        onChange={(e) => setProfile({ ...profile, location: e.target.value })}
                         placeholder="Location"
                       />
                     </div>
                     <div className="relative group md:col-span-2">
                       <label className="absolute -top-2 left-4 px-2 bg-[#1c1b1b] text-xs font-label uppercase tracking-widest text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">Availability Status</label>
-                      <select 
+                      <select
                         className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body appearance-none"
                         value={profile.status}
-                        onChange={(e) => setProfile({...profile, status: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, status: e.target.value })}
                       >
                         <option value="Available for New Projects">Available for New Projects</option>
                         <option value="Currently Fully Booked">Currently Fully Booked</option>
@@ -688,29 +699,29 @@ const AdminDashboard = () => {
                         <span className="material-symbols-outlined">expand_more</span>
                       </div>
                     </div>
-                     <div className="relative group md:col-span-2">
-                        <label className="absolute -top-2 left-4 px-2 bg-[#1c1b1b] text-xs font-label uppercase tracking-widest text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">CV / Resume Link</label>
-                        <input 
-                          className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body" 
-                          type="url" 
-                          value={profile.cv_url} 
-                          onChange={(e) => setProfile({...profile, cv_url: e.target.value})}
-                          placeholder="Google Drive / Dropbox link to your CV"
-                        />
-                     </div>
-                     <div className="relative group md:col-span-2">
-                        <label className="absolute -top-2 left-4 px-2 bg-[#1c1b1b] text-xs font-label uppercase tracking-widest text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">Base Image URL</label>
-                        <input 
-                          className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body" 
-                          type="url" 
-                          value={profile.base_image_url} 
-                          onChange={(e) => setProfile({...profile, base_image_url: e.target.value})}
-                          placeholder="Paste environmental studio/location image link"
-                        />
-                     </div>
+                    <div className="relative group md:col-span-2">
+                      <label className="absolute -top-2 left-4 px-2 bg-[#1c1b1b] text-xs font-label uppercase tracking-widest text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">CV / Resume Link</label>
+                      <input
+                        className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body"
+                        type="url"
+                        value={profile.cv_url}
+                        onChange={(e) => setProfile({ ...profile, cv_url: e.target.value })}
+                        placeholder="Google Drive / Dropbox link to your CV"
+                      />
+                    </div>
+                    <div className="relative group md:col-span-2">
+                      <label className="absolute -top-2 left-4 px-2 bg-[#1c1b1b] text-xs font-label uppercase tracking-widest text-[#c7c4d8] group-focus-within:text-[#c0c1ff] transition-colors">Base Image URL</label>
+                      <input
+                        className="w-full bg-[#2a2a2a] text-[#e5e2e1] p-4 rounded-xl border-0 ring-1 ring-[#464555]/20 focus:ring-2 focus:ring-[#c0c1ff] transition-all outline-none font-body"
+                        type="url"
+                        value={profile.base_image_url}
+                        onChange={(e) => setProfile({ ...profile, base_image_url: e.target.value })}
+                        placeholder="Paste environmental studio/location image link"
+                      />
+                    </div>
                   </div>
                   <div className="mt-10 flex justify-end">
-                    <button 
+                    <button
                       onClick={handleUpdateProfile}
                       disabled={savingProfile}
                       className="bg-gradient-to-r from-[#c0c1ff] to-[#4b4dd8] text-[#131313] px-10 py-4 rounded-full font-label font-bold uppercase tracking-widest hover:brightness-110 transition-all active:scale-95 shadow-xl disabled:opacity-50"
@@ -720,21 +731,21 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Visual Anchor */}
               <div className="xl:col-span-5 h-full">
                 <div className="rounded-xl overflow-hidden aspect-[4/3] xl:aspect-auto xl:h-full relative group cursor-pointer shadow-2xl border border-[#464555]/10 min-h-[400px]">
                   <div className="absolute inset-0 bg-gradient-to-t from-[#131313] via-transparent to-transparent z-10 opacity-80"></div>
                   {profile.base_image_url ? (
-                     <img 
-                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-100" 
-                       src={profile.base_image_url} 
-                       alt="Base of Operations"
-                     />
+                    <img
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-100"
+                      src={profile.base_image_url}
+                      alt="Base of Operations"
+                    />
                   ) : (
-                     <div className="w-full h-full bg-[#1c1b1b] flex items-center justify-center">
-                       <span className="material-symbols-outlined text-[#464555] text-6xl">image</span>
-                     </div>
+                    <div className="w-full h-full bg-[#1c1b1b] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[#464555] text-6xl">image</span>
+                    </div>
                   )}
                   <div className="absolute bottom-8 left-8 z-20">
                     <div className="flex items-center gap-2 mb-2">
@@ -834,16 +845,16 @@ const AdminDashboard = () => {
                 </div>
                 {/* Action Buttons */}
                 <div className="flex items-center gap-6 pt-6">
-                  <button 
+                  <button
                     disabled={savingProject}
-                    className="bg-gradient-to-r from-[#c0c1ff] to-[#4b4dd8] text-[#131313] px-10 py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-all shadow-[0_10px_30px_-5px_rgba(79,70,229,0.3)] disabled:opacity-50" 
+                    className="bg-gradient-to-r from-[#c0c1ff] to-[#4b4dd8] text-[#131313] px-10 py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-all shadow-[0_10px_30px_-5px_rgba(79,70,229,0.3)] disabled:opacity-50"
                     type="submit"
                   >
                     {savingProject ? 'Saving...' : 'Save Project'}
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveTab('projects')}
-                    className="text-[#e5e2e1]/60 hover:text-[#e5e2e1] font-bold text-sm uppercase tracking-widest transition-colors underline underline-offset-8 decoration-[#1c1b1b] hover:decoration-[#c0c1ff]" 
+                    className="text-[#e5e2e1]/60 hover:text-[#e5e2e1] font-bold text-sm uppercase tracking-widest transition-colors underline underline-offset-8 decoration-[#1c1b1b] hover:decoration-[#c0c1ff]"
                     type="button"
                   >
                     Cancel
@@ -851,7 +862,7 @@ const AdminDashboard = () => {
                 </div>
               </form>
             </div>
-            
+
             {/* Right Column: Meta & Preview */}
             <div className="col-span-12 xl:col-span-4 space-y-8">
               {/* Metadata Card */}
@@ -861,7 +872,7 @@ const AdminDashboard = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center py-2 border-b border-[#131313]">
                       <span className="text-sm text-[#e5e2e1]/60">Created On</span>
-                      <span className="text-sm text-[#e5e2e1] font-medium">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}</span>
+                      <span className="text-sm text-[#e5e2e1] font-medium">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-[#131313]">
                       <span className="text-sm text-[#e5e2e1]/60">Status</span>
@@ -869,17 +880,17 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Mini Preview */}
                 <div>
                   <h4 className="text-xs font-label uppercase tracking-[0.2em] text-[#e5e2e1]/40 mb-4">Preview</h4>
                   <div className="group relative aspect-[4/5] rounded-xl overflow-hidden bg-[#0e0e0e] border border-[#2a2a2a] flex items-center justify-center">
                     {projectForm.image_url ? (
                       <>
-                        <img 
-                           className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" 
-                           src={projectForm.image_url} 
-                           alt="Preview cover" 
+                        <img
+                          className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
+                          src={projectForm.image_url}
+                          alt="Preview cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#131313] via-transparent to-transparent opacity-90"></div>
                       </>
@@ -893,7 +904,7 @@ const AdminDashboard = () => {
                   </div>
                   <p className="text-[10px] text-[#e5e2e1]/40 mt-3 text-center italic font-label">Preview generated based on current metadata</p>
                 </div>
-                
+
                 {/* Helper Tip */}
                 <div className="bg-[#4b4dd8]/5 p-5 rounded-xl border border-[#c0c1ff]/10">
                   <div className="flex gap-3">
@@ -984,16 +995,16 @@ const AdminDashboard = () => {
                 </div>
                 {/* Action Buttons */}
                 <div className="flex items-center gap-6 pt-6">
-                  <button 
+                  <button
                     disabled={updatingProject}
-                    className="bg-gradient-to-r from-[#c0c1ff] to-[#4b4dd8] text-[#131313] px-10 py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-all shadow-lg disabled:opacity-50" 
+                    className="bg-gradient-to-r from-[#c0c1ff] to-[#4b4dd8] text-[#131313] px-10 py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-all shadow-lg disabled:opacity-50"
                     type="submit"
                   >
                     {updatingProject ? 'Updating...' : 'Update Project'}
                   </button>
-                  <button 
+                  <button
                     onClick={() => { setEditingProject(null); setActiveTab('projects'); }}
-                    className="text-[#e5e2e1]/60 hover:text-[#e5e2e1] font-bold text-sm uppercase tracking-widest transition-colors underline underline-offset-8" 
+                    className="text-[#e5e2e1]/60 hover:text-[#e5e2e1] font-bold text-sm uppercase tracking-widest transition-colors underline underline-offset-8"
                     type="button"
                   >
                     Cancel
@@ -1001,7 +1012,7 @@ const AdminDashboard = () => {
                 </div>
               </form>
             </div>
-            
+
             {/* Right Column: Meta & Preview */}
             <div className="col-span-12 xl:col-span-4 space-y-8">
               <div className="bg-[#1c1b1b] rounded-2xl p-8 sticky top-32 border border-[#464555]/10 shadow-lg">
