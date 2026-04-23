@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
   try {
     const result = await query(
       `SELECT id, title, description, category, tags, image_url, live_url, github_url,
-              TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at
+              to_char(created_at, 'YYYY-MM-DD') AS created_at
        FROM projects
        ORDER BY created_at DESC`
     );
@@ -50,8 +50,8 @@ router.get('/:id', async (req, res) => {
   try {
     const result = await query(
       `SELECT id, title, description, category, tags, image_url, live_url, github_url,
-              TO_CHAR(created_at, 'YYYY-MM-DD') AS created_at
-       FROM projects WHERE id = :id`,
+              to_char(created_at, 'YYYY-MM-DD') AS created_at
+       FROM projects WHERE id = $1`,
       [req.params.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Project not found' });
@@ -72,11 +72,11 @@ router.post('/', verifyToken, upload.single('image'), async (req, res) => {
       image_url = await uploadToCloudinary(req.file.buffer);
     }
 
-    console.log('Received project data:', req.body);
+    console.log('Received project data for Postgres:', req.body);
     await query(
       `INSERT INTO projects (title, description, category, tags, image_url, live_url, github_url)
-       VALUES (:title, :description, :category, :tags, :image_url, :live_url, :github_url)`,
-      { title, description, category, tags, image_url, live_url, github_url }
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [title, description, category, tags, image_url, live_url, github_url]
     );
     res.status(201).json({ message: 'Project created successfully' });
   } catch (err) {
@@ -97,10 +97,10 @@ router.put('/:id', verifyToken, upload.single('image'), async (req, res) => {
 
     await query(
       `UPDATE projects
-       SET title = :title, description = :description, category = :category,
-           tags = :tags, image_url = NVL(:image_url, image_url), live_url = :live_url
-       WHERE id = :id`,
-      { title, description, category, tags, image_url, live_url, id: req.params.id }
+       SET title = $1, description = $2, category = $3,
+           tags = $4, image_url = COALESCE($5, image_url), live_url = $6
+       WHERE id = $7`,
+      [title, description, category, tags, image_url, live_url, req.params.id]
     );
     res.json({ message: 'Project updated successfully' });
   } catch (err) {
@@ -112,7 +112,7 @@ router.put('/:id', verifyToken, upload.single('image'), async (req, res) => {
 // DELETE /api/projects/:id — delete project [PROTECTED]
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
-    await query('DELETE FROM projects WHERE id = :id', [req.params.id]);
+    await query('DELETE FROM projects WHERE id = $1', [req.params.id]);
     res.json({ message: 'Project deleted successfully' });
   } catch (err) {
     console.error('DELETE /api/projects/:id error:', err.message);

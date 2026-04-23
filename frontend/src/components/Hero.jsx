@@ -29,10 +29,10 @@ const Hero = () => {
   }
 
   // Fallback to defaults if no profile is found or fields are missing
-  const displayName = profile?.FULL_NAME || 'M Saad Iqbal';
-  const displayStatus = profile?.STATUS || 'Available for New Projects';
-  const displayBio = profile?.BIO || 'Transforming complex ideas into high-fidelity monoliths of design and code.';
-  const displayAvatar = profile?.AVATAR_URL || 'https://res.cloudinary.com/durgaqq7v/image/upload/v1775323710/portfolio/frerfyyg5xuvxed3rb0s.png';
+  const displayName = profile?.full_name || 'M Saad Iqbal';
+  const displayStatus = profile?.status || 'Available for New Projects';
+  const displayBio = profile?.bio || 'Transforming complex ideas into high-fidelity monoliths of design and code.';
+  const displayAvatar = profile?.avatar_url || 'https://res.cloudinary.com/durgaqq7v/image/upload/v1775323710/portfolio/frerfyyg5xuvxed3rb0s.png';
 
   return (
     <section className="relative min-h-screen flex items-center pt-24 overflow-hidden">
@@ -57,7 +57,7 @@ const Hero = () => {
           <div className="flex flex-wrap items-center gap-6 pt-4">
             <button 
               onClick={() => {
-                const link = profile?.CV_URL;
+                const link = profile?.cv_url;
                 if (link) {
                   window.open(link, '_blank');
                 } else {

@@ -1,44 +1,38 @@
-const oracledb = require('oracledb');
+const { Pool } = require('pg');
 require('dotenv').config();
-
-// Use Thin mode — no Oracle Client needed
-oracledb.initOracleClient = undefined;
-
-// Fetch CLOBs as strings to avoid circular JSON structure errors
-oracledb.fetchAsString = [oracledb.CLOB];
 
 let pool;
 
+// Initialize connection pool
 async function initPool() {
   try {
-    pool = await oracledb.createPool({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      connectString: process.env.DB_CONNECTION_STRING,
-      poolMin: 2,
-      poolMax: 10,
-      poolIncrement: 1,
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false, // REQUIRED for Supabase
+      },
     });
-    console.log('✅ Oracle DB connection pool created');
+
+    // Test connection
+    const client = await pool.connect();
+    console.log('--- DB Handshake Successful ---');
+    client.release();
+
   } catch (err) {
-    console.error('❌ Failed to create Oracle DB pool:', err.message);
-    // Do not exit process, allow server to start for UI preview
+    console.error('❌ Database connection failed:', err.message);
+    throw err;
   }
 }
 
-async function query(sql, binds = [], opts = {}) {
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    const result = await connection.execute(sql, binds, {
-      outFormat: oracledb.OUT_FORMAT_OBJECT,
-      autoCommit: true,
-      ...opts,
-    });
-    return result;
-  } finally {
-    if (connection) await connection.close();
+// Query helper
+const query = (text, params) => {
+  if (!pool) {
+    throw new Error('Pool not initialized. Call initPool first.');
   }
-}
+  return pool.query(text, params);
+};
 
-module.exports = { initPool, query };
+module.exports = {
+  initPool,
+  query,
+};

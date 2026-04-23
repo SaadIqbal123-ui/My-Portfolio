@@ -7,13 +7,12 @@ const verifyToken = require('../middleware/verifyToken');
 router.get('/', async (req, res) => {
   try {
     const result = await query(
-      `SELECT FULL_NAME, EMAIL, AVATAR_URL, BASE_IMAGE_URL, STATUS, LOCATION, BIO, CV_URL
+      `SELECT full_name, email, avatar_url, base_image_url, status, location, bio, cv_url
        FROM profile
-       FETCH FIRST 1 ROWS ONLY`
+       LIMIT 1`
     );
     
-    // Log for debugging
-    console.log(`Fetched profile. Total rows in table: ${result.rows.length}`);
+    console.log(`Fetched profile. Found: ${result.rows.length} records`);
 
     if (!result.rows.length) {
       return res.status(404).json({ error: 'Profile not found' });
@@ -36,21 +35,21 @@ router.put('/', verifyToken, async (req, res) => {
     
     const updateResult = await query(
       `UPDATE profile
-       SET FULL_NAME = :full_name, 
-           EMAIL = :email, 
-           AVATAR_URL = :avatar_url,
-           BASE_IMAGE_URL = :base_image_url, 
-           STATUS = :status, 
-           LOCATION = :location, 
-           BIO = :bio, 
-           CV_URL = :cv_url
-       WHERE ROWID IN (SELECT ROWID FROM profile FETCH FIRST 1 ROWS ONLY)`,
-      { full_name, email, avatar_url, base_image_url, status, location, bio, cv_url }
+       SET full_name = $1, 
+           email = $2, 
+           avatar_url = $3, 
+           base_image_url = $4, 
+           status = $5, 
+           location = $6, 
+           bio = $7, 
+           cv_url = $8
+       WHERE id = (SELECT id FROM profile LIMIT 1)`,
+      [full_name, email, avatar_url, base_image_url, status, location, bio, cv_url]
     );
     
-    console.log('Update Success - Rows Affected:', updateResult.rowsAffected);
+    console.log('Update Success - Rows Affected:', updateResult.rowCount);
     
-    res.json({ message: 'Profile updated successfully', rowsAffected: updateResult.rowsAffected });
+    res.json({ message: 'Profile updated successfully', rowCount: updateResult.rowCount });
   } catch (err) {
     console.error('PUT /api/profile error:', err.message);
     res.status(500).json({ error: 'Failed to update profile', details: err.message });

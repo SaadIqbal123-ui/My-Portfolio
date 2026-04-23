@@ -43,13 +43,13 @@ const Projects = () => {
             <div className="col-span-2 text-center py-20 text-on-surface-variant">Loading projects...</div>
           ) : projects.length > 0 ? (
             projects.map((project, index) => (
-              <div key={project.ID} className={`group cursor-pointer ${index === 1 ? 'md:mt-24' : ''}`}>
+              <div key={project.id} className={`group cursor-pointer ${index === 1 ? 'md:mt-24' : ''}`}>
                 <div className="aspect-[16/10] bg-surface-container-lowest rounded-xl overflow-hidden mb-8">
-                  {project.IMAGE_URL ? (
+                  {project.image_url ? (
                     <img 
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                      src={project.IMAGE_URL} 
-                      alt={project.TITLE}
+                      src={project.image_url} 
+                      alt={project.title}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-surface-container">
@@ -58,17 +58,17 @@ const Projects = () => {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-3 mb-4">
-                  {project.TAGS && project.TAGS.split(',').map(tag => (
+                  {project.tags && project.tags.split(',').map(tag => (
                     <span key={tag} className="px-4 py-1 rounded-full bg-surface-container-highest text-xs font-label uppercase tracking-widest text-on-surface-variant">
                       {tag.trim()}
                     </span>
                   ))}
                 </div>
                 <h3 className="text-3xl font-headline font-bold text-on-surface mb-3 group-hover:text-primary transition-colors">
-                  {project.TITLE}
+                  {project.title}
                 </h3>
                 <p className="text-on-surface-variant text-lg leading-relaxed">
-                  {project.DESCRIPTION}
+                  {project.description}
                 </p>
               </div>
             ))

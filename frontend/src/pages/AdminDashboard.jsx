@@ -74,14 +74,14 @@ const AdminDashboard = () => {
       const data = await res.json();
       if (res.ok) {
         setProfile({
-          email: data.EMAIL || data.email || '',
-          location: data.LOCATION || data.location || '',
-          status: data.STATUS || data.status || '',
-          full_name: data.FULL_NAME || data.full_name || '',
-          avatar_url: data.AVATAR_URL || data.avatar_url || '',
-          base_image_url: data.BASE_IMAGE_URL || data.base_image_url || '',
-          cv_url: data.CV_URL || data.cv_url || '',
-          bio: data.BIO || data.bio || ''
+          email: data.email || '',
+          location: data.location || '',
+          status: data.status || '',
+          full_name: data.full_name || '',
+          avatar_url: data.avatar_url || '',
+          base_image_url: data.base_image_url || '',
+          cv_url: data.cv_url || '',
+          bio: data.bio || ''
         });
       }
     } catch (err) {
@@ -125,7 +125,7 @@ const AdminDashboard = () => {
 
   const handleUpdateProject = async (e) => {
     e.preventDefault();
-    if (!editingProject || !editingProject.ID) return;
+    if (!editingProject || !editingProject.id) return;
     
     setUpdatingProject(true);
     try {
@@ -133,20 +133,20 @@ const AdminDashboard = () => {
       if (!currentUser) throw new Error("Not authenticated");
       const idToken = await currentUser.getIdToken();
       
-      const res = await fetch(`/api/projects/${editingProject.ID}`, {
+      const res = await fetch(`/api/projects/${editingProject.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${idToken}`
         },
         body: JSON.stringify({
-          title: editingProject.TITLE,
-          description: editingProject.DESCRIPTION,
-          category: editingProject.CATEGORY,
-          live_url: editingProject.LIVE_URL,
-          image_url: editingProject.IMAGE_URL,
-          tags: editingProject.TAGS || '',
-          github_url: editingProject.GITHUB_URL || ''
+          title: editingProject.title,
+          description: editingProject.description,
+          category: editingProject.category,
+          live_url: editingProject.live_url,
+          image_url: editingProject.image_url,
+          tags: editingProject.tags || '',
+          github_url: editingProject.github_url || ''
         })
       });
       
@@ -205,7 +205,7 @@ const AdminDashboard = () => {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      setProjects((prev) => prev.filter((p) => p.ID !== id));
+      setProjects((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error('Error deleting project:', err);
     } finally {
@@ -221,11 +221,11 @@ const AdminDashboard = () => {
   };
 
   const filteredProjects = projects.filter((p) =>
-    (p.TITLE || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.CATEGORY || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.category || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const publishedCount = projects.filter((p) => p.LIVE_URL).length;
+  const publishedCount = projects.filter((p) => p.live_url).length;
 
   return (
     <div className="bg-[#131313] text-[#e5e2e1] font-body min-h-screen">
@@ -378,21 +378,21 @@ const AdminDashboard = () => {
 
               {/* Project Rows */}
               {!loading && filteredProjects.map((project, index) => {
-                const isPublished = Boolean(project.LIVE_URL);
+                const isPublished = Boolean(project.live_url);
                 const isEven = index % 2 === 0;
 
                 return (
                   <div
-                    key={project.ID}
+                    key={project.id}
                     className={`col-span-12 grid grid-cols-12 items-center px-8 py-6 ${isEven ? 'bg-[#0e0e0e]' : 'bg-[#1c1b1b]'} hover:bg-[#2a2a2a] transition-all group border-b border-[#464555]/10 md:border-none ${index === filteredProjects.length - 1 ? 'rounded-b-xl' : ''}`}
                   >
                     {/* Project Details */}
                     <div className="col-span-12 md:col-span-5 flex items-center gap-6 mb-4 md:mb-0">
                       <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#353534] flex-shrink-0">
-                        {project.IMAGE_URL ? (
+                        {project.image_url ? (
                           <img
-                            src={project.IMAGE_URL}
-                            alt={project.TITLE}
+                            src={project.image_url}
+                            alt={project.title}
                             className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
                           />
                         ) : (
@@ -402,9 +402,9 @@ const AdminDashboard = () => {
                         )}
                       </div>
                       <div>
-                        <h3 className="font-headline text-lg font-bold text-[#e5e2e1]">{project.TITLE}</h3>
+                        <h3 className="font-headline text-lg font-bold text-[#e5e2e1]">{project.title}</h3>
                         <p className="font-body text-sm text-[#c7c4d8]/60">
-                          {project.CREATED_AT ? `Added ${project.CREATED_AT}` : 'No date'}
+                          {project.created_at ? `Added ${project.created_at}` : 'No date'}
                         </p>
                       </div>
                     </div>
@@ -412,7 +412,7 @@ const AdminDashboard = () => {
                     {/* Category */}
                     <div className="col-span-6 md:col-span-2">
                       <span className="bg-[#353534] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#c7c4d8]">
-                        {project.CATEGORY || 'Uncategorized'}
+                        {project.category || 'Uncategorized'}
                       </span>
                     </div>
 
@@ -433,9 +433,9 @@ const AdminDashboard = () => {
 
                     {/* Actions */}
                     <div className="col-span-12 md:col-span-3 flex justify-end gap-3 mt-4 md:mt-0">
-                      {project.LIVE_URL && (
+                      {project.live_url && (
                         <a
-                          href={project.LIVE_URL}
+                          href={project.live_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 rounded-full hover:bg-[#353534] text-[#c7c4d8] transition-colors"
@@ -444,9 +444,9 @@ const AdminDashboard = () => {
                           <span className="material-symbols-outlined">open_in_new</span>
                         </a>
                       )}
-                      {project.GITHUB_URL && (
+                      {project.github_url && (
                         <a
-                          href={project.GITHUB_URL}
+                          href={project.github_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 rounded-full hover:bg-[#353534] text-[#c7c4d8] transition-colors"
@@ -465,7 +465,7 @@ const AdminDashboard = () => {
                       <button
                         className="p-2 rounded-full hover:bg-[#ffb4ab]/10 text-[#ffb4ab] transition-colors"
                         title="Delete"
-                        onClick={() => setDeleteConfirm(project.ID)}
+                        onClick={() => setDeleteConfirm(project.id)}
                       >
                         <span className="material-symbols-outlined">delete</span>
                       </button>

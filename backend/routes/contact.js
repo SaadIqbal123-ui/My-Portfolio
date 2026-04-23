@@ -45,11 +45,11 @@ router.post('/', (req, res) => {
         return res.status(400).json({ error: 'All fields (name, email, subject, message) are required' });
       }
 
-      // 1. Save to Database
+      // 1. Save to Database (Postgres Syntax)
       await query(
         `INSERT INTO contacts (full_name, email, subject, message, attachment_link)
-         VALUES (:full_name, :email, :subject, :message, :attachment_link)`,
-        { full_name: name, email, subject, message, attachment_link: attachment_link || null }
+         VALUES ($1, $2, $3, $4, $5)`,
+        [name, email, subject, message, attachment_link || null]
       );
 
       // 2. Prepare Email Notification
@@ -102,7 +102,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const result = await query(
       `SELECT id, full_name, email, subject,
-              TO_CHAR(submitted_at, 'YYYY-MM-DD HH24:MI') AS submitted_at
+              to_char(submitted_at, 'YYYY-MM-DD HH24:MI') AS submitted_at
        FROM contacts
        ORDER BY submitted_at DESC`
     );

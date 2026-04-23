@@ -34,10 +34,10 @@ app.get('/api/health', (req, res) => {
 // Start server after DB pool is ready (Graceful start)
 initPool()
   .then(() => {
-    console.log('✅ Oracle DB Connection Pool Initialized');
+    console.log('✅ PostgreSQL Cloud Connection Initialized');
   })
   .catch((err) => {
-    console.error('❌ CRITICAL: Oracle DB Connection Failed:', err.message);
+    console.error('❌ CRITICAL: Database Connection Failed:', err.message);
     console.error('The server will continue to run, but DB features will be unavailable.');
   })
   .finally(() => {

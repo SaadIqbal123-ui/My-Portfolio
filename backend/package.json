@@ -16,7 +16,7 @@
     "firebase-admin": "^13.8.0",
     "multer": "*",
     "nodemailer": "^8.0.5",
-    "oracledb": "*",
+    "pg": "^8.20.0",
     "streamifier": "^0.1.1"
   }
 }
