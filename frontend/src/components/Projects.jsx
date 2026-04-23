@@ -34,11 +34,11 @@ const Projects = () => {
             </h2>
           </div>
           <Link to="/projects" className="group flex items-center gap-2 text-primary font-bold text-lg border-b border-primary/20 pb-1">
-            Explore Archive 
+            Explore Archive
             <span className="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
           </Link>
         </div>
-        
+
         <div className="grid md:grid-cols-2 gap-12 lg:gap-24">
           {loading ? (
             <div className="col-span-2 text-center py-20 text-on-surface-variant">Loading projects...</div>
@@ -47,9 +47,9 @@ const Projects = () => {
               <div key={project.id} className={`group cursor-pointer ${index === 1 ? 'md:mt-24' : ''}`}>
                 <div className="aspect-[16/10] bg-surface-container-lowest rounded-xl overflow-hidden mb-8">
                   {project.image_url ? (
-                    <img 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                      src={project.image_url} 
+                    <img
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      src={project.image_url}
                       alt={project.title}
                     />
                   ) : (
