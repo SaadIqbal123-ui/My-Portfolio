@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/projects')
+    fetch(`${API_BASE_URL}/api/projects`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import API_BASE_URL from '../apiConfig';
 
 const Hero = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/profile')
+    fetch(`${API_BASE_URL}/api/profile`)
       .then(res => res.json())
       .then(data => {
         setProfile(data);

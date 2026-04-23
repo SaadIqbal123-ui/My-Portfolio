@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import API_BASE_URL from '../apiConfig';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('projects'); // 'projects', 'contacts', 'profile'
@@ -57,7 +58,7 @@ const AdminDashboard = () => {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/projects');
+      const res = await fetch(`${API_BASE_URL}/api/projects`);
       const data = await res.json();
       setProjects(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -70,7 +71,7 @@ const AdminDashboard = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch('/api/profile');
+      const res = await fetch(`${API_BASE_URL}/api/profile`);
       const data = await res.json();
       if (res.ok) {
         setProfile({
@@ -97,7 +98,7 @@ const AdminDashboard = () => {
       if (!currentUser) throw new Error("Not authenticated");
       const idToken = await currentUser.getIdToken();
       
-      const res = await fetch('/api/projects', {
+      const res = await fetch(`${API_BASE_URL}/api/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +134,7 @@ const AdminDashboard = () => {
       if (!currentUser) throw new Error("Not authenticated");
       const idToken = await currentUser.getIdToken();
       
-      const res = await fetch(`/api/projects/${editingProject.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${editingProject.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +179,7 @@ const AdminDashboard = () => {
       const currentUser = auth.currentUser;
       if (!currentUser) return;
       const idToken = await currentUser.getIdToken();
-      await fetch('/api/profile', {
+      await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -201,7 +202,7 @@ const AdminDashboard = () => {
       const currentUser = auth.currentUser;
       if (!currentUser) return;
       const idToken = await currentUser.getIdToken();
-      await fetch(`/api/projects/${id}`, {
+      await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${idToken}` },
       });

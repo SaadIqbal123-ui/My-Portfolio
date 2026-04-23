@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_BASE_URL from '../apiConfig';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '', attachment_link: '' });
@@ -8,7 +9,7 @@ const Contact = () => {
   const [profile, setProfile] = useState({ email: 'saadiqbalbse067@gmail.com', location: 'Remote', status: 'Currently accepting new commissions' });
 
   React.useEffect(() => {
-    fetch('/api/profile')
+    fetch(`${API_BASE_URL}/api/profile`)
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -48,7 +49,7 @@ const Contact = () => {
       Object.keys(formData).forEach(key => data.append(key, formData[key]));
       attachmentFiles.forEach(file => data.append('images', file));
 
-      const response = await fetch('/api/contact', {
+      const response = await fetch(`${API_BASE_URL}/api/contact`, {
         method: 'POST',
         body: data,
       });
