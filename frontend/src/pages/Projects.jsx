@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
 // Skeleton loader for loading state
 const CardSkeleton = () => (
@@ -187,13 +188,25 @@ const Projects = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/api/projects')
+    fetch(`${API_BASE_URL}/api/projects`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to load projects');
         return res.json();
       })
       .then(data => {
-        setProjects(data);
+        // Map to UPPERCASE to support the existing ProjectCard logic
+        const mappedData = (Array.isArray(data) ? data : []).map(p => ({
+          ...p,
+          ID: p.id,
+          TITLE: p.title,
+          DESCRIPTION: p.description,
+          CATEGORY: p.category,
+          IMAGE_URL: p.image_url,
+          LIVE_URL: p.live_url,
+          GITHUB_URL: p.github_url,
+          TAGS: p.tags
+        }));
+        setProjects(mappedData);
         setLoading(false);
       })
       .catch(err => {
